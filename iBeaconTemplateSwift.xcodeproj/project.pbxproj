@@ -14,6 +14,7 @@
 		448D894F19632D6F006ADF78 /* iBeaconTemplateSwiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 448D894E19632D6F006ADF78 /* iBeaconTemplateSwiftTests.swift */; };
 		448D895919632E3B006ADF78 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 448D895819632E3B006ADF78 /* CoreLocation.framework */; };
 		CE1BDD9119BD376F00AFB1ED /* tos_beep.caf in Resources */ = {isa = PBXBuildFile; fileRef = CE1BDD9019BD376F00AFB1ED /* tos_beep.caf */; };
+		D9E02C7F19EBA0150086576E /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9E02C7E19EBA0150086576E /* CoreBluetooth.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,7 @@
 		448D894E19632D6F006ADF78 /* iBeaconTemplateSwiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iBeaconTemplateSwiftTests.swift; sourceTree = "<group>"; };
 		448D895819632E3B006ADF78 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		CE1BDD9019BD376F00AFB1ED /* tos_beep.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = tos_beep.caf; sourceTree = "<group>"; };
+		D9E02C7E19EBA0150086576E /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9E02C7F19EBA0150086576E /* CoreBluetooth.framework in Frameworks */,
 				448D895919632E3B006ADF78 /* CoreLocation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -62,6 +65,7 @@
 		448D892D19632D6E006ADF78 = {
 			isa = PBXGroup;
 			children = (
+				D9E02C7E19EBA0150086576E /* CoreBluetooth.framework */,
 				448D895819632E3B006ADF78 /* CoreLocation.framework */,
 				448D893819632D6E006ADF78 /* iBeaconTemplateSwift */,
 				448D894B19632D6F006ADF78 /* iBeaconTemplateSwiftTests */,

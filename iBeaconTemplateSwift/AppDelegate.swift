@@ -8,18 +8,26 @@
 
 import UIKit
 import CoreLocation
+import CoreBluetooth
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate,
+CBCentralManagerDelegate, CBPeripheralDelegate{
                             
     var window: UIWindow?
     var locationManager: CLLocationManager?
+    var centralManager: CBCentralManager?
+    var _peripheral: CBPeripheral?
     var lastProximity: CLProximity?
 
     func application(application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: NSDictionary?) -> Bool {
-        let uuidString = "EBEFD083-70A2-47C8-9837-E7B5634DF524"
-        let beaconIdentifier = "iBeaconModules.us"
+        let uuidString = "E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"
+        let beaconIdentifier = "com.beaconDemo"
+            
+        let kServiceUUID = "E28E86A2-45A2-4E39-B0F0-045446794698"
+        let kCharacteristicUUID = "4FBAF52F-925F-4958-86EF-68984BEFB5C7"
+        
         let beaconUUID:NSUUID = NSUUID(UUIDString: uuidString)
         let beaconRegion:CLBeaconRegion = CLBeaconRegion(proximityUUID: beaconUUID,
             identifier: beaconIdentifier)
@@ -46,6 +54,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
             )
         }
         
+        centralManager = CBCentralManager(delegate: self, queue: nil)
+            
         return true
     }
 
@@ -74,6 +84,51 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
 
 }
 
+extension AppDelegate: CBCentralManagerDelegate {
+    func centralManagerDidUpdateState(central: CBCentralManager!) {
+        switch central.state {
+        case CBCentralManagerState.Unauthorized:
+            println("CBCentralManagerState.Unauthorized")
+        case CBCentralManagerState.PoweredOn:
+            println("CBCentralManagerState.PoweredOn")
+            centralManager?.scanForPeripheralsWithServices(nil, options: nil)
+        default:
+            println("\(central.state.toRaw())")
+        }
+    }
+    
+    func centralManager(central: CBCentralManager!, didDiscoverPeripheral peripheral: CBPeripheral!, advertisementData: [NSObject : AnyObject]!, RSSI: NSNumber!) {
+        
+        NSLog("%s", __FUNCTION__)
+        println("Discover \(peripheral.name) rssi\(RSSI)")
+        
+        centralManager?.stopScan()
+        _peripheral = peripheral
+        
+    }
+    
+    func centralManager(central: CBCentralManager!, didConnectPeripheral peripheral: CBPeripheral!) {
+        NSLog("%s", __FUNCTION__)
+        println("Connected with \(peripheral.name)")
+        peripheral.delegate = self
+        peripheral.discoverServices(nil)
+    }
+    
+    func centralManager(central: CBCentralManager!, didFailToConnectPeripheral peripheral: CBPeripheral!, error: NSError!) {
+        println("\(__FUNCTION__)")
+        println("Connected with \(peripheral.name)")
+    }
+    
+    func centralManager(central: CBCentralManager!, didDisconnectPeripheral peripheral: CBPeripheral!, error: NSError!) {
+        println("\(__FUNCTION__)")
+        println("Connected with \(peripheral.name)")
+    }
+}
+
+extension AppDelegate: CBPeripheralDelegate {
+    
+}
+
 extension AppDelegate: CLLocationManagerDelegate {
 	func sendLocalNotificationWithMessage(message: String!, playSound: Bool) {
         let notification:UILocalNotification = UILocalNotification()
@@ -100,7 +155,7 @@ extension AppDelegate: CLLocationManagerDelegate {
             viewController.beacons = beacons as [CLBeacon]?
             viewController.tableView!.reloadData()
             
-            NSLog("didRangeBeacons");
+            //NSLog("didRangeBeacons");
             var message:String = ""
 			
 			var playSound = false
@@ -122,6 +177,7 @@ extension AppDelegate: CLLocationManagerDelegate {
                     message = "You are near the beacon"
                 case CLProximity.Immediate:
                     message = "You are in the immediate proximity of the beacon"
+                    centralManager?.connectPeripheral(_peripheral, options: nil)
                 case CLProximity.Unknown:
                     return
                 }
