@@ -20,13 +20,14 @@ CBCentralManagerDelegate, CBPeripheralDelegate{
     var _peripheral: CBPeripheral?
     var lastProximity: CLProximity?
 
+    let kServiceUUID = "E28E86A2-45A2-4E39-B0F0-045446794698"
+    let kCharacteristicUUID = "4FBAF52F-925F-4958-86EF-68984BEFB5C7"
+    
     func application(application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: NSDictionary?) -> Bool {
         let uuidString = "E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"
         let beaconIdentifier = "com.beaconDemo"
             
-        let kServiceUUID = "E28E86A2-45A2-4E39-B0F0-045446794698"
-        let kCharacteristicUUID = "4FBAF52F-925F-4958-86EF-68984BEFB5C7"
         
         let beaconUUID:NSUUID = NSUUID(UUIDString: uuidString)
         let beaconRegion:CLBeaconRegion = CLBeaconRegion(proximityUUID: beaconUUID,
@@ -110,23 +111,82 @@ extension AppDelegate: CBCentralManagerDelegate {
     func centralManager(central: CBCentralManager!, didConnectPeripheral peripheral: CBPeripheral!) {
         NSLog("%s", __FUNCTION__)
         println("Connected with \(peripheral.name)")
+        
         peripheral.delegate = self
         peripheral.discoverServices(nil)
     }
     
     func centralManager(central: CBCentralManager!, didFailToConnectPeripheral peripheral: CBPeripheral!, error: NSError!) {
-        println("\(__FUNCTION__)")
+        NSLog("%s", __FUNCTION__)
         println("Connected with \(peripheral.name)")
     }
     
     func centralManager(central: CBCentralManager!, didDisconnectPeripheral peripheral: CBPeripheral!, error: NSError!) {
-        println("\(__FUNCTION__)")
+        NSLog("%s", __FUNCTION__)
         println("Connected with \(peripheral.name)")
     }
 }
 
 extension AppDelegate: CBPeripheralDelegate {
+    func peripheral(peripheral: CBPeripheral!, didDiscoverServices error: NSError!) {
+        NSLog("%s", __FUNCTION__)
+        if((error) != nil) {
+            NSLog("!!!error :%@", error.localizedDescription)
+            return;
+        }
+        for  service in peripheral.services {
+            println("Discover service \(service)")
+            println("UUID \(service.UUID)")
+            if(service.UUID == CBUUID.UUIDWithString(kServiceUUID)){
+                let Service = (service as CBService)
+                peripheral.discoverCharacteristics(nil , forService: Service)
+                
+                sendLocalNotificationWithMessage("Welcome to iPhone6 plus station", playSound: false)
+            }
+        }
+    }
+    func peripheral(peripheral: CBPeripheral!, didDiscoverIncludedServicesForService service: CBService!, error: NSError!)
+    {
+        NSLog("%s", __FUNCTION__)
+        if((error) != nil) {
+            NSLog("!!!error :%@", error.localizedDescription)
+            return;
+        }
+        for  service in peripheral.services {
+            println("Discover service \(service)")
+            println("UUID \(service.UUID)")
+            if(service.UUID == CBUUID.UUIDWithString(kServiceUUID)){
+                let Service = (service as CBService)
+                peripheral.discoverCharacteristics(nil , forService: Service)
+            }
+        }
+    }
     
+    func peripheral(peripheral: CBPeripheral!, didDiscoverCharacteristicsForService service: CBService!, error: NSError!)
+    {
+        if((error) != nil) {
+            NSLog("!!!error :%@", error.localizedDescription)
+            return;
+        }
+        for characteristic in service.characteristics{
+            if(characteristic.UUID == CBUUID.UUIDWithString(kCharacteristicUUID)){
+                println("Discover characteristic \(characteristic)")
+                _peripheral?.setNotifyValue(true, forCharacteristic: characteristic as CBCharacteristic)
+            }
+        }
+    }
+    
+    func peripheral(peripheral: CBPeripheral!, didUpdateValueForCharacteristic characteristic: CBCharacteristic!, error: NSError!) {
+        if((error) != nil) {
+            NSLog("!!!error :%@", error.localizedDescription)
+            return;
+        }
+        
+        let receiveStr = NSString(data: characteristic.value, encoding: NSUTF8StringEncoding)
+        NSLog("%@", receiveStr)
+        sendLocalNotificationWithMessage("\(receiveStr)", playSound: false)
+        
+    }
 }
 
 extension AppDelegate: CLLocationManagerDelegate {
@@ -175,6 +235,7 @@ extension AppDelegate: CLLocationManagerDelegate {
 					playSound = true
                 case CLProximity.Near:
                     message = "You are near the beacon"
+                    centralManager?.cancelPeripheralConnection(_peripheral)
                 case CLProximity.Immediate:
                     message = "You are in the immediate proximity of the beacon"
                     centralManager?.connectPeripheral(_peripheral, options: nil)
